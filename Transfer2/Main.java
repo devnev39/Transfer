@@ -1,5 +1,6 @@
 package Transfer2;
 
+import java.net.InetAddress;
 import java.util.Scanner;
 import Transfer2.Client.Client;
 import Transfer2.FTPS.Server;
@@ -20,6 +21,7 @@ public class Main {
                     break;
                 
                 case 2:
+                    PrintIp();
                     System.out.println("Enter root path for directory : ");
                     String path = sc.nextLine();
                     Server s = new Server(8999, new ServerEventHandler(), path);
@@ -32,5 +34,16 @@ public class Main {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+    }
+
+    public static void PrintIp(){
+        try {
+            String hostName = InetAddress.getLocalHost().getHostName();
+            InetAddress addrs[] = InetAddress.getAllByName(hostName);
+            System.out.println(addrs[1].getHostAddress());
+        } catch (Exception e) {
+            System.out.print(e.getMessage());
+        }
+        
     }
 }
