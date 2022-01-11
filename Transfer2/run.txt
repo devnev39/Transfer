@@ -1,0 +1,50 @@
+Server start
+Open port 
+Client connect
+
+From Client
+    get commands
+
+    -   Need    -  
+    server to have commands 
+    how to add new command 
+        1 - create a list of commands and update it with creating respective command method
+        2 - create  a command class which will hold and execute the respective command
+    
+    example commands -> 
+        a. ls -> list files
+        b. cd -> change directory (only below root)
+        c. get -> get the file 
+        d. list_con -> get active connection to the server (TEST CMD)
+        e. DISCON111 -> disconnect from server
+
+From client side
+
+Take the input 
+check if we have the input as command in commands list
+if there is then 
+    command.procedure.executeClientProcedure()
+    -> This method will handle all the send and receive pattern of that command
+
+    At server -> 
+    client class will receive the command
+    find command in commands list
+    if found -> 
+        command.procedure.executeServerProcedure()
+
+2 types of response from server ->
+    1. Text
+    2. File 
+
+    1. For text -> 
+        first send if exeption occured by sending a int 
+        second send the length of the message (bytes)
+        third send the actual message
+    
+    2. For file -> 
+        first send if exception occured
+        second send the lenght of the file (bytes)
+        third send the actual file bytes
+
+LS -> list files and folder of root directory
+cd -> change the root within the b boundry
