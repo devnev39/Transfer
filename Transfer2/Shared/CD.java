@@ -39,23 +39,24 @@ public class CD extends Command {
     public void executeServerProcedure(String input, Socket clientSocket) throws Exception {
         int flag = 0;
         byte[] buffer;
-
-        String[] vals = input.split(" ");
-        String newRoot = this.getNewRoot(vals[1]);
-        File f = new File(newRoot);
-        if(f.exists()){
-            try {
+        try {
+            String[] sp = this.remove(input.split(" "),0);
+            String path = String.join(" ", sp);
+            String newRoot = this.getNewRoot(path);
+            File f = new File(newRoot);    
+            if(f.exists()){
                 this.applyNewRoot(newRoot);
                 buffer = this.GetFileFolders(this.Root).getBytes();
                 flag = 1;
-            } catch (Exception e) {
+            }else{
                 flag = -1;
-                buffer = this.ObjectToByteArray(e);
+                buffer = this.ObjectToByteArray(new Exception("File/Folder doesn't exist !"));
             }
-        }else{
+        } catch (Exception e) {
             flag = -1;
-            buffer = this.ObjectToByteArray(new Exception("File/Folder doesn't exist !"));
+            buffer = this.ObjectToByteArray(e);
         }
+        
 
         clientSocket.getOutputStream().write(ByteBuffer.allocate(4).putInt(flag).array());
         clientSocket.getOutputStream().write(ByteBuffer.allocate(8).putLong((long)buffer.length).array());
@@ -78,8 +79,13 @@ public class CD extends Command {
             if(newRoot.equals(this.serverRoot())){
                 return newRoot;
             }else{
-                String[] sp = this.Root.split(File.separator);
-                newRoot = String.join(File.separator,this.remove(sp,sp.length-1));
+                String[] sp;
+                if(File.separator.equals("/"))
+                    sp = this.Root.split(File.separator);
+                else
+                    sp = this.Root.split(File.separator+File.separator);
+                sp = this.remove(sp,sp.length-1);
+                newRoot = String.join(File.separator,sp);
                 return newRoot;
             }
         }else{
