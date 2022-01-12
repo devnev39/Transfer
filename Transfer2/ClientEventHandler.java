@@ -9,7 +9,7 @@ import Transfer2.Client.ClientEvents;
 
 public class ClientEventHandler implements ClientEvents {
     
-    private final DecimalFormat decimalFormat = new DecimalFormat("0.00");
+    private final DecimalFormat decimalFormat = new DecimalFormat("0.000");
 
     @Override
     public void TextReceived(String text) {
