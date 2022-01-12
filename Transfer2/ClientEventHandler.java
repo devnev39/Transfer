@@ -1,11 +1,15 @@
 package Transfer2;
 
 import java.net.Socket;
+import java.text.DecimalFormat;
 import java.util.Scanner;
+import java.util.TimerTask;
 
 import Transfer2.Client.ClientEvents;
 
 public class ClientEventHandler implements ClientEvents {
+    
+    private final DecimalFormat decimalFormat = new DecimalFormat("0.00");
 
     @Override
     public void TextReceived(String text) {
@@ -52,10 +56,19 @@ public class ClientEventHandler implements ClientEvents {
 
     public void byteReceived(long i, long len) {
         float percent = ((float)i/(float)len)*100.0f;
-        System.out.print(percent+" % \r");
+        System.out.print(decimalFormat.format(percent)+" % \r");
         if(percent==100.0f){
             System.out.println("Completed !");
         }
+    }
+
+    public void updateSpeed(long diff, TimerTask timerTask) {
+        if(diff==0){
+            timerTask.cancel();
+            return;
+        }
+        float rate = (float)diff / 1000.0f;
+        System.out.print("\t"+decimalFormat.format(rate)+" kB/s\r");
     }
     
 }

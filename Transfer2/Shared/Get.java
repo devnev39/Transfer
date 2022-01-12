@@ -5,11 +5,18 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
+
 import Transfer2.ClientEventHandler;
 import Transfer2.ServerEventHandler;
 
 public class Get extends Command {
     private String RecPath;
+    
+    private long lastLen = 0;
+    private long currentLen = 0;
 
     public Get(ClientEventHandler cHandler) {
         super("get", cHandler);
@@ -104,10 +111,18 @@ public class Get extends Command {
             }
         }
         FileOutputStream fos = new FileOutputStream(f,b);
-        for(long i=start+1;i<=len;i++){
+        Timer t = new Timer();
+        t.schedule(new TimerTask() {
+            public void run(){
+                long diff = currentLen - lastLen;
+                lastLen = currentLen;
+                clientEventHandler.updateSpeed(diff,this);
+            }
+        }, 100,1000);
+        for(this.currentLen=start+1;this.currentLen<=len;this.currentLen++){
             byte data = (byte) serverSocket.getInputStream().read();
             fos.write(data);
-            this.clientEventHandler.byteReceived(i,len);
+            this.clientEventHandler.byteReceived(this.currentLen,len);
         }
         fos.close();
     }
