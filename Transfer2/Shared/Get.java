@@ -102,10 +102,8 @@ public class Get extends Command {
 
     private void ReceiveFile(Socket serverSocket, File f, boolean b) throws Exception {
         long len = this.ReceiveInputDataLenght(serverSocket);
-        long start = 0;
-        if(b){
-            start = f.length();
-        }else{
+        long initial_len = f.length();
+        if(!b){
             if(f.exists()){
                 f.delete();
             }
@@ -119,10 +117,10 @@ public class Get extends Command {
                 clientEventHandler.updateSpeed(diff,this);
             }
         }, 100,1000);
-        for(this.currentLen=start+1;this.currentLen<=len;this.currentLen++){
+        for(this.currentLen=1;this.currentLen<=len;this.currentLen++){
             byte data = (byte) serverSocket.getInputStream().read();
             fos.write(data);
-            this.clientEventHandler.byteReceived(this.currentLen,len);
+            this.clientEventHandler.byteReceived(this.currentLen+initial_len,initial_len+len);
         }
         fos.close();
     }
@@ -139,7 +137,7 @@ public class Get extends Command {
             clientSocket.getOutputStream().write(ByteBuffer.allocate(8).putLong(len).array());
             FileInputStream fis = new FileInputStream(f);
             fis.skip(index);
-            for(long i=index+1;i<=len;i++){
+            for(long i=1;i<=len;i++){
                 byte b = (byte) fis.read();
                 clientSocket.getOutputStream().write(b);
             }
