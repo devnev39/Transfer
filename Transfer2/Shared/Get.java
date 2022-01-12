@@ -7,7 +7,6 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.TimeUnit;
 
 import Transfer2.ClientEventHandler;
 import Transfer2.ServerEventHandler;
@@ -17,6 +16,8 @@ public class Get extends Command {
     
     private long lastLen = 0;
     private long currentLen = 0;
+
+    private final int BUFFER_LEN = 1024;
 
     public Get(ClientEventHandler cHandler) {
         super("get", cHandler);
@@ -66,7 +67,6 @@ public class Get extends Command {
     public void executeClientProcedure(String input, Socket serverSocket) throws Exception {
         String[] vals = this.remove(input.split(" "),0);
         vals = String.join(" ", vals).split(",");
-        this.checkFileNameFormat(vals);
         if(vals.length==0){
             throw new Exception("Nothing to get !");
         }
@@ -90,19 +90,11 @@ public class Get extends Command {
         }
     }
 
-    private void checkFileNameFormat(String[] vals) throws Exception{   
-        for(String val : vals){
-            if(val.contains(".")){
-                continue;
-            }else{
-                throw new Exception("No support for getting folder :"+val);
-            }
-        }
-    }
-
     private void ReceiveFile(Socket serverSocket, File f, boolean b) throws Exception {
         long len = this.ReceiveInputDataLenght(serverSocket);
-        long initial_len = f.length();
+        int buffer_len = this.ReceiveInputDataLenghtInt(serverSocket);  // Buffer length is int
+        int loop_len = (int)(len/(long)buffer_len);
+        int remainder_size = (int)(len%(long)this.BUFFER_LEN);
         if(!b){
             if(f.exists()){
                 f.delete();
@@ -117,10 +109,25 @@ public class Get extends Command {
                 clientEventHandler.updateSpeed(diff,this);
             }
         }, 100,1000);
-        for(this.currentLen=1;this.currentLen<=len;this.currentLen++){
-            byte data = (byte) serverSocket.getInputStream().read();
+        for(int i=1;i<=loop_len+1;i++){
+            byte[] data;
+            if(i==loop_len+1){
+                if(remainder_size==0){
+                    continue;
+                }
+                data = new byte[remainder_size];
+            }else{
+                data = new byte[buffer_len];
+            }
+            serverSocket.getInputStream().read(data);
             fos.write(data);
-            this.clientEventHandler.byteReceived(this.currentLen+initial_len,initial_len+len);
+            if(i==loop_len+1){
+                this.currentLen += buffer_len*i + remainder_size;
+                this.clientEventHandler.byteReceived(i*buffer_len+remainder_size, len);
+            }else{
+                this.currentLen += buffer_len*i;
+                this.clientEventHandler.byteReceived(i*buffer_len, len);
+            }
         }
         fos.close();
     }
@@ -130,16 +137,28 @@ public class Get extends Command {
         String[] vals = remove(input.split(" "),0);
         String filename = String.join(" ", vals);
         File f = new File(this.Root+File.separator+filename);
-        if(f.exists()){
+        if(f.exists() && f.isFile()){
             clientSocket.getOutputStream().write(ByteBuffer.allocate(4).putInt(1).array());
             long index = this.ReceiveInputDataLenght(clientSocket);
             long len = f.length() - index;
             clientSocket.getOutputStream().write(ByteBuffer.allocate(8).putLong(len).array());
+            clientSocket.getOutputStream().write(ByteBuffer.allocate(4).putInt(this.BUFFER_LEN).array());
+            int loop_lenght = (int)(len/(long)this.BUFFER_LEN);
+            int remainder_size = (int)(len%(long)this.BUFFER_LEN);
             FileInputStream fis = new FileInputStream(f);
             fis.skip(index);
-            for(long i=1;i<=len;i++){
-                byte b = (byte) fis.read();
-                clientSocket.getOutputStream().write(b);
+            for(int i=1;i<=loop_lenght+1;i++){
+                byte[] data;
+                if(i==loop_lenght+1){
+                    if(remainder_size==0){
+                        continue;
+                    }
+                    data = new byte[remainder_size];
+                }else{
+                    data = new byte[this.BUFFER_LEN];
+                }
+                fis.read(data);
+                clientSocket.getOutputStream().write(data);
             }
             fis.close();
         }else{

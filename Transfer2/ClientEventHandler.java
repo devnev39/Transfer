@@ -67,8 +67,8 @@ public class ClientEventHandler implements ClientEvents {
             timerTask.cancel();
             return;
         }
-        float rate = (float)diff / 1000.0f;
-        System.out.print("\t"+decimalFormat.format(rate)+" kB/s\r");
+        float rate = (float)diff / 1000000.0f;
+        System.out.print("\t"+decimalFormat.format(rate)+" MB/s\r");
     }
     
 }
