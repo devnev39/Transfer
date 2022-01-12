@@ -95,10 +95,7 @@ public class Get extends Command {
         int buffer_len = this.ReceiveInputDataLenghtInt(serverSocket);  // Buffer length is int
         int loop_len = (int)(len/(long)buffer_len);
         int remainder_size = (int)(len%(long)this.BUFFER_LEN);
-        long start = 0;
-        if(b){
-            start = f.length();
-        }else{
+        if(!b){
             if(f.exists()){
                 f.delete();
             }
@@ -145,7 +142,7 @@ public class Get extends Command {
             long index = this.ReceiveInputDataLenght(clientSocket);
             long len = f.length() - index;
             clientSocket.getOutputStream().write(ByteBuffer.allocate(8).putLong(len).array());
-            clientSocket.getOutputStream().write(ByteBuffer.allocate(4).putLong(this.BUFFER_LEN).array());
+            clientSocket.getOutputStream().write(ByteBuffer.allocate(4).putInt(this.BUFFER_LEN).array());
             int loop_lenght = (int)(len/(long)this.BUFFER_LEN);
             int remainder_size = (int)(len%(long)this.BUFFER_LEN);
             FileInputStream fis = new FileInputStream(f);
