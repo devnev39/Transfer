@@ -14,8 +14,9 @@ import Transfer2.ServerEventHandler;
 public class Get extends Command {
     private String RecPath;
     
-    private long lastLen = 0;
+    private long lastLen = 1;
     private long currentLen = 0;
+    private Timer t;
 
     private final int BUFFER_LEN = 1024;
 
@@ -101,14 +102,15 @@ public class Get extends Command {
             }
         }
         FileOutputStream fos = new FileOutputStream(f,b);
-        Timer t = new Timer();
+        t = new Timer();
         t.schedule(new TimerTask() {
+            @Override
             public void run(){
                 long diff = currentLen - lastLen;
                 lastLen = currentLen;
-                clientEventHandler.updateSpeed(diff,this);
+                clientEventHandler.updateSpeed(diff,t);
             }
-        }, 100,1000);
+        }, 0,1000);
         for(int i=1;i<=loop_len+1;i++){
             byte[] data;
             if(i==loop_len+1){

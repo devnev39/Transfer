@@ -3,7 +3,7 @@ package Transfer2;
 import java.net.Socket;
 import java.text.DecimalFormat;
 import java.util.Scanner;
-import java.util.TimerTask;
+import java.util.Timer;
 
 import Transfer2.Client.ClientEvents;
 
@@ -62,13 +62,14 @@ public class ClientEventHandler implements ClientEvents {
         }
     }
 
-    public void updateSpeed(long diff, TimerTask timerTask) {
+    public void updateSpeed(long diff, Timer t) {
         if(diff==0){
-            timerTask.cancel();
+            t.cancel();
+            t.purge();
             return;
         }
-        float rate = (float)diff / 1000000.0f;
-        System.out.print("\t"+decimalFormat.format(rate)+" MB/s\r");
+        float rate = (float)diff / 1048576.0f;
+        System.out.print("\t\t"+rate+" MB/s\r");
     }
     
 }
