@@ -7,6 +7,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 
 import Transfer2.ClientEventHandler;
 import Transfer2.ServerEventHandler;
@@ -34,6 +35,45 @@ public abstract class Command {
     public Command(String specifier,ServerEventHandler sHandler){
         this.Specifier = specifier;
         this.serverEventHandler = sHandler;
+    }
+
+    public static ArrayList<Command> generateClientCommands(ClientEventHandler EventHandler){
+        ArrayList<Command> clientCommands = new ArrayList<Command>();
+        LS ls = new LS(EventHandler);
+        Get get = new Get(EventHandler);
+        CD cd = new CD(EventHandler);
+        Where where = new Where(EventHandler);
+        Status status = new Status(EventHandler);
+        clientCommands.add(ls);
+        clientCommands.add(get);
+        clientCommands.add(cd);
+        clientCommands.add(where);
+        clientCommands.add(status);
+        return clientCommands;
+    }
+
+    public static ArrayList<Command>  generateServerCommands(ServerEventHandler serverEventHandler,String Root){
+        ArrayList<Command> serverCommands = new ArrayList<Command>();
+        Get get = new Get(serverEventHandler, Root);
+        LS ls = new LS(serverEventHandler,Root);
+        Where where = new Where(serverEventHandler,Root);
+        CD cd = new CD(serverEventHandler,Root,new ArrayList<Command>(){{
+                add(ls);
+                add(get);
+                add(where);
+            }});
+        Status status = new Status(serverEventHandler,new ArrayList<Command>(){{
+                add(get);
+                add(ls);
+                add(where);
+                add(cd);
+            }});
+        serverCommands.add(where);
+        serverCommands.add(get);
+        serverCommands.add(ls);
+        serverCommands.add(cd);
+        serverCommands.add(status);
+        return serverCommands;
     }
 
     private <T> T getObject(byte[] buffer) throws Exception{

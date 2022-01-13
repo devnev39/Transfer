@@ -13,37 +13,12 @@ public class Client extends Thread {
     private ArrayList<Command> Commands;
     private String Root;
     private ServerEventHandler serverEventHandler;
-    //private DataInputStream dis;
 
     public Client(Socket s,String root) throws Exception{
         this.clientSocket = s;
         this.Root = root;
         this.serverEventHandler = new ServerEventHandler();
-        this.CreateCommandList();
-        //dis = new DataInputStream(this.clientSocket.getInputStream());
-    }
-
-    private void CreateCommandList(){
-        this.Commands = new ArrayList<Command>();
-        Get get = new Get(this.serverEventHandler, this.Root);
-        LS ls = new LS(this.serverEventHandler,this.Root);
-        Where where = new Where(this.serverEventHandler,this.Root);
-        CD cd = new CD(this.serverEventHandler,this.Root,new ArrayList<Command>(){{
-                add(ls);
-                add(get);
-                add(where);
-            }});
-        Status status = new Status(this.serverEventHandler,new ArrayList<Command>(){{
-                add(get);
-                add(ls);
-                add(where);
-                add(cd);
-            }});
-        this.Commands.add(where);
-        this.Commands.add(get);
-        this.Commands.add(ls);
-        this.Commands.add(cd);
-        this.Commands.add(status);
+        this.Commands = Command.generateServerCommands(serverEventHandler, this.Root);
     }
 
     public void run(){
