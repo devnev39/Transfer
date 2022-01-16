@@ -43,7 +43,7 @@ public abstract class Command {
         Get get = new Get(EventHandler);
         CD cd = new CD(EventHandler);
         Where where = new Where(EventHandler);
-        Status status = new Status(EventHandler);
+        Help status = new Help(EventHandler);
         clientCommands.add(ls);
         clientCommands.add(get);
         clientCommands.add(cd);
@@ -62,7 +62,7 @@ public abstract class Command {
                 add(get);
                 add(where);
             }});
-        Status status = new Status(serverEventHandler,new ArrayList<Command>(){{
+        Help status = new Help(serverEventHandler,new ArrayList<Command>(){{
                 add(get);
                 add(ls);
                 add(where);

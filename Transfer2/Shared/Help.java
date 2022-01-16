@@ -6,17 +6,17 @@ import java.util.ArrayList;
 import Transfer2.ClientEventHandler;
 import Transfer2.ServerEventHandler;
 
-public class Status extends Command{
+public class Help extends Command{
     
     private ArrayList<Command> Commands;
 
-    public Status(ServerEventHandler sHandler,ArrayList<Command> commands) {
-        super("status", sHandler);
+    public Help(ServerEventHandler sHandler,ArrayList<Command> commands) {
+        super("help", sHandler);
         this.Commands = commands;
     }
 
-    public Status(ClientEventHandler cHandler) {
-        super("status", cHandler);
+    public Help(ClientEventHandler cHandler) {
+        super("help", cHandler);
     }
 
     @Override
@@ -39,6 +39,6 @@ public class Status extends Command{
 
     @Override
     public String getInfo() {
-        return "status  ->  get info about all commands\n";
+        return "Help  ->  get info about all commands\n";
     }
 }
