@@ -44,11 +44,13 @@ public abstract class Command {
         CD cd = new CD(EventHandler);
         Where where = new Where(EventHandler);
         Help status = new Help(EventHandler);
+        Size size = new Size(EventHandler);
         clientCommands.add(ls);
         clientCommands.add(get);
         clientCommands.add(cd);
         clientCommands.add(where);
         clientCommands.add(status);
+        clientCommands.add(size);
         return clientCommands;
     }
 
@@ -57,21 +59,25 @@ public abstract class Command {
         Get get = new Get(serverEventHandler, Root);
         LS ls = new LS(serverEventHandler,Root);
         Where where = new Where(serverEventHandler,Root);
+        Size size = new Size(serverEventHandler,Root);
         CD cd = new CD(serverEventHandler,Root,new ArrayList<Command>(){{
                 add(ls);
                 add(get);
                 add(where);
+                add(size);
             }});
         Help status = new Help(serverEventHandler,new ArrayList<Command>(){{
                 add(get);
                 add(ls);
                 add(where);
                 add(cd);
+                add(size);
             }});
         serverCommands.add(where);
         serverCommands.add(get);
         serverCommands.add(ls);
         serverCommands.add(cd);
+        serverCommands.add(size);
         serverCommands.add(status);
         return serverCommands;
     }
