@@ -39,6 +39,6 @@ public class Help extends Command{
 
     @Override
     public String getInfo() {
-        return "Help  ->  get info about all commands\n";
+        return "help  ->  get info about all commands\n";
     }
 }
