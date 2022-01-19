@@ -41,29 +41,17 @@ public class Get extends Command {
         }
     }
 
-    private boolean[] exist(String[] files){
-        boolean[] exist = new boolean[files.length];
-        int i = 0;
-        for(String file : files){
-            File f = new File(this.RecPath+File.separator+file);
-            if(f.exists()){
-                exist[i] = true;
+    private int append(File file,long size){
+        if(file.exists()){
+            if(file.length()<size){
+                boolean des = this.clientEventHandler.getResponse(file.getName()+" exist ! Append to it directly ? (y/n)");
+                if(des)
+                    return 1;
             }else{
-                exist[i] = false;
-            }
-            i++;
-        }
-        return exist;
-    }
-
-    private boolean[] append(String[] files){
-        boolean[] exist = this.exist(files);
-        for(int i=0;i<files.length;i++){
-            if(exist[i]){
-                exist[i] = this.clientEventHandler.getResponse(files[i]+" already exist ! Do you want to resume from last point ?(y/n)");
+                return -1;
             }
         }
-        return exist;
+        return 0;
     }
 
     @Override
@@ -73,7 +61,6 @@ public class Get extends Command {
         if(vals.length==0){
             throw new Exception("Nothing to get !");
         }
-        boolean[] ifAppend = this.append(vals);
         for(int i=0;i<vals.length;i++){
             this.sendText("get "+vals[i], serverSocket);
             int flag = this.ReceiveStatusFlag(serverSocket);
@@ -87,24 +74,32 @@ public class Get extends Command {
                 files.forEach((fn,sz)->{
                     Size += sz;
                 });
-                if(this.clientEventHandler.getResponse("Total Files : "+files.size()+" Size : "+this.Size+"\nProceed to get all files ? (y/n)")){
+                float size = (float)this.Size / 1048576.0f;
+                if(this.clientEventHandler.getResponse("Total Files : "+files.size()+" Size : "+size+" MiB\nProceed to get all files ? (y/n)")){
                     files.forEach((fn,sz)->{
                         try {
-                            this.sendText("get "+fn, serverSocket);
+                            this.executeClientProcedure("get "+fn, serverSocket);
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            this.clientEventHandler.ClientExceptionOccured(serverSocket, e);
                         }
                     });
                 }
                 this.Size = 0;
             }else{
                 File f = new File(this.RecPath+File.separator+vals[i]);
-                if(ifAppend[i]){
+                long size = this.ReceiveInputDataLenght(serverSocket);
+                int ifAppend = this.append(f,size);
+                if(ifAppend==1){
                     serverSocket.getOutputStream().write(ByteBuffer.allocate(8).putLong(f.length()).array());
                     this.ReceiveFile(serverSocket,f,true);
-                }else{
+                }else
+                if(ifAppend==0){
                     serverSocket.getOutputStream().write(ByteBuffer.allocate(8).putLong(0).array());
                     this.ReceiveFile(serverSocket,f,false);
+                }
+                else{
+                    serverSocket.getOutputStream().write(ByteBuffer.allocate(8).putLong(-1).array());
+                    continue;
                 }
             }
         }
@@ -161,28 +156,31 @@ public class Get extends Command {
         File f = new File(this.Root+File.separator+filename);
         if(f.exists() && f.isFile()){
             clientSocket.getOutputStream().write(ByteBuffer.allocate(4).putInt(1).array());
+            clientSocket.getOutputStream().write(ByteBuffer.allocate(8).putLong(f.length()).array());
             long index = this.ReceiveInputDataLenght(clientSocket);
-            long len = f.length() - index;
-            clientSocket.getOutputStream().write(ByteBuffer.allocate(8).putLong(len).array());
-            clientSocket.getOutputStream().write(ByteBuffer.allocate(4).putInt(this.BUFFER_LEN).array());
-            int loop_lenght = (int)(len/(long)this.BUFFER_LEN);
-            int remainder_size = (int)(len%(long)this.BUFFER_LEN);
-            FileInputStream fis = new FileInputStream(f);
-            fis.skip(index);
-            for(int i=1;i<=loop_lenght+1;i++){
-                byte[] data;
-                if(i==loop_lenght+1){
-                    if(remainder_size==0){
-                        continue;
+            if(index!=-1){
+                long len = f.length() - index;
+                clientSocket.getOutputStream().write(ByteBuffer.allocate(8).putLong(len).array());
+                clientSocket.getOutputStream().write(ByteBuffer.allocate(4).putInt(this.BUFFER_LEN).array());
+                int loop_lenght = (int)(len/(long)this.BUFFER_LEN);
+                int remainder_size = (int)(len%(long)this.BUFFER_LEN);
+                FileInputStream fis = new FileInputStream(f);
+                fis.skip(index);
+                for(int i=1;i<=loop_lenght+1;i++){
+                    byte[] data;
+                    if(i==loop_lenght+1){
+                        if(remainder_size==0){
+                            continue;
+                        }
+                        data = new byte[remainder_size];
+                    }else{
+                        data = new byte[this.BUFFER_LEN];
                     }
-                    data = new byte[remainder_size];
-                }else{
-                    data = new byte[this.BUFFER_LEN];
+                    fis.read(data);
+                    clientSocket.getOutputStream().write(data);
                 }
-                fis.read(data);
-                clientSocket.getOutputStream().write(data);
+                fis.close();
             }
-            fis.close();
         }else{
             clientSocket.getOutputStream().write(ByteBuffer.allocate(4).putInt(-1).array());
         }
