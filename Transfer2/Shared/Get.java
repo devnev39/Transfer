@@ -5,9 +5,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
-
 import Transfer2.ClientEventHandler;
 import Transfer2.ServerEventHandler;
 
@@ -19,6 +19,8 @@ public class Get extends Command {
     private Timer t;
 
     private final int BUFFER_LEN = 1024;
+
+    private long Size = 0;
 
     public Get(ClientEventHandler cHandler) {
         super("get", cHandler);
@@ -58,7 +60,7 @@ public class Get extends Command {
         boolean[] exist = this.exist(files);
         for(int i=0;i<files.length;i++){
             if(exist[i]){
-                exist[i] = this.clientEventHandler.getAppendResponse(files[i]);
+                exist[i] = this.clientEventHandler.getResponse(files[i]+" already exist ! Do you want to resume from last point ?(y/n)");
             }
         }
         return exist;
@@ -78,6 +80,23 @@ public class Get extends Command {
             if(flag==-1){
                 this.clientEventHandler.FileNotExistServerError(vals[i]);
                 continue;
+            }else
+            if(flag==2){
+                long len = this.ReceiveInputDataLenght(serverSocket);
+                HashMap<String,Long> files = this.getObject(this.getBuffer(serverSocket, len)); 
+                files.forEach((fn,sz)->{
+                    Size += sz;
+                });
+                if(this.clientEventHandler.getResponse("Total Files : "+files.size()+" Size : "+this.Size+"\nProceed to get all files ? (y/n)")){
+                    files.forEach((fn,sz)->{
+                        try {
+                            this.sendText("get "+fn, serverSocket);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    });
+                }
+                this.Size = 0;
             }else{
                 File f = new File(this.RecPath+File.separator+vals[i]);
                 if(ifAppend[i]){
@@ -100,6 +119,7 @@ public class Get extends Command {
             if(f.exists()){
                 f.delete();
             }
+            f.getParentFile().mkdirs();
         }
         FileOutputStream fos = new FileOutputStream(f,b);
         t = new Timer();

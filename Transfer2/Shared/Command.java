@@ -82,7 +82,7 @@ public abstract class Command {
         return serverCommands;
     }
 
-    private <T> T getObject(byte[] buffer) throws Exception{
+    protected <T> T getObject(byte[] buffer) throws Exception{
         ByteArrayInputStream bis = new ByteArrayInputStream(buffer);
         ObjectInputStream ois = new ObjectInputStream(bis);
         T obj = (T) ois.readObject();

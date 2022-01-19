@@ -11,4 +11,5 @@ public interface ClientEvents {
     public void CommandNotFound(String cmd);
     public void FileNotExistServerError(String string);
     public void updateSpeed(long diff,Timer timerTask);
+    public boolean getResponse(String string);
 }

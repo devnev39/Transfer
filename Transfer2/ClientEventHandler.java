@@ -40,9 +40,9 @@ public class ClientEventHandler implements ClientEvents {
         System.out.println(cmd+" command not found !");
     }
 
-    public boolean getAppendResponse(String string) {
+    public boolean getResponse(String string) {
         Scanner sc =  new Scanner(System.in);
-        System.out.println(string+" exist !"+"Append to the previous or create new ? (type y for yes)");
+        System.out.println(string);
         String inp = sc.nextLine();
         if(inp.equals("y") || inp.equals("Y")){
             return true;
