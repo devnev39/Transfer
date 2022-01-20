@@ -181,7 +181,18 @@ public class Get extends Command {
                 }
                 fis.close();
             }
-        }else{
+        }else
+        if(f.exists() && f.isDirectory()){
+            clientSocket.getOutputStream().write(ByteBuffer.allocate(4).putInt(2).array());
+            HashMap<String,Long> h = new HashMap<String,Long>();
+            this.GetToLastFiles(f.getPath()).forEach((name)->{
+                h.put(name.replace(this.Root+File.separator, ""), new File(name).length());
+            });
+            byte[] data = this.ObjectToByteArray(h);
+            clientSocket.getOutputStream().write(ByteBuffer.allocate(8).putLong((long)data.length).array());
+            clientSocket.getOutputStream().write(data);
+        }
+        else{
             clientSocket.getOutputStream().write(ByteBuffer.allocate(4).putInt(-1).array());
         }
     }

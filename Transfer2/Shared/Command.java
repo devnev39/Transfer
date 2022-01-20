@@ -168,6 +168,19 @@ public abstract class Command {
         }
     }
 
+    protected ArrayList<String> GetToLastFiles(String path){
+        File f = new File(path);
+        ArrayList<String> fnames = new ArrayList<String>();
+        for (File file : f.listFiles()) {
+            if(file.isDirectory()){
+                fnames.addAll(GetToLastFiles(file.getPath()));
+            }else{
+                fnames.add(path+File.separator+file.getName());
+            }
+        }
+        return fnames;
+    }
+
     protected String[] remove(String[] sp, int ind) throws Exception{
         if(sp.length==1){
             return sp;
