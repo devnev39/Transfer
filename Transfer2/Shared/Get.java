@@ -14,7 +14,7 @@ import Transfer2.ServerEventHandler;
 public class Get extends Command {
     private String RecPath;
     
-    private long lastLen = 1;
+    private long lastLen = 0;
     private long currentLen = 0;
     private Timer t;
 
@@ -106,6 +106,7 @@ public class Get extends Command {
     }
 
     private void ReceiveFile(Socket serverSocket, File f, boolean b) throws Exception {
+        this.lastLen = 0; 
         long len = this.ReceiveInputDataLenght(serverSocket);
         int buffer_len = this.ReceiveInputDataLenghtInt(serverSocket);  // Buffer length is int
         int loop_len = (int)(len/(long)buffer_len);

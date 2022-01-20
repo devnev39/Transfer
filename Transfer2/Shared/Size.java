@@ -33,7 +33,7 @@ public class Size extends Command {
             if(flag==1){
                 long len = this.ReceiveInputDataLenght(serverSocket);
                 float meg = (float)len / 1048576.0f;
-                this.clientEventHandler.TextReceived(val+"\t"+meg+" MB");
+                this.clientEventHandler.TextReceived(val+"\t"+meg+" MiB");
             }else
             if(flag==2){
                 long len = this.ReceiveInputDataLenght(serverSocket);

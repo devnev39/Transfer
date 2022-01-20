@@ -69,7 +69,7 @@ public class ClientEventHandler implements ClientEvents {
             return;
         }
         float rate = (float)diff / 1048576.0f;
-        System.out.print("\t\t"+rate+" MB/s\r");
+        System.out.print("\t\t"+rate+" MiB/s\r");
     }
     
 }
